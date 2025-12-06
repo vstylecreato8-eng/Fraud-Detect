@@ -26,15 +26,10 @@ interface AnalysisResult {
   row_data?: CSVRow;
 }
 
-// Get API URL from environment variable or use same domain
+// Get API URL - use Railway backend for predictions
 const getApiUrl = () => {
-  // On Vercel, use relative path to Vercel API functions
-  if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost')) {
-    return window.location.origin;
-  }
-  
-  // For local development
-  return 'http://localhost:5000';
+  // Your Railway backend domain
+  return 'https://fraud07.up.railway.app';
 };
 
 const Index = () => {
