@@ -211,24 +211,21 @@ const Index = () => {
         mode: 'cors',
       });
 
-      if (!response.ok) {
-        try {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `API error: ${response.status}`);
-        } catch (jsonError) {
-          // If response is not JSON, it's probably HTML error page
-          const errorText = await response.text();
-          console.error('API Error Response:', errorText);
-          throw new Error(`API error: ${response.status} ${response.statusText}. The backend may not be running or configured correctly.`);
-        }
+      // Read response body only once
+      const responseText = await response.text();
+      let data;
+
+      // Try to parse as JSON
+      try {
+        data = JSON.parse(responseText);
+      } catch (jsonError) {
+        console.error('Failed to parse response as JSON:', jsonError, 'Response:', responseText);
+        throw new Error('Invalid response from API. Backend may not be running or is returning HTML instead of JSON.');
       }
 
-      let data;
-      try {
-        data = await response.json();
-      } catch (jsonError) {
-        console.error('Failed to parse response:', jsonError);
-        throw new Error('Invalid response from API. Backend may not be running or is returning HTML instead of JSON.');
+      // Check for API errors
+      if (!response.ok) {
+        throw new Error(data.error || `API error: ${response.status} ${response.statusText}`);
       }
       
       setPrediction({
