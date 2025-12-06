@@ -83,7 +83,7 @@ const Index = () => {
     };
     
     checkBackend();
-  }, [apiUrl];
+  }, [apiUrl]);
 
   // Parse CSV file
   const parseCSV = (file: File): Promise<CSVRow[]> => {
