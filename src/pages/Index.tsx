@@ -26,21 +26,15 @@ interface AnalysisResult {
   row_data?: CSVRow;
 }
 
-// Get API URL from environment variable or fallback
+// Get API URL from environment variable or use same domain
 const getApiUrl = () => {
-  // Try environment variable first
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL.replace(/\/$/, '');
+  // On Vercel, use relative path to Vercel API functions
+  if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost')) {
+    return window.location.origin;
   }
   
-  // Fallback for development
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    return 'http://localhost:5000';
-  }
-  
-  // Production fallback - will need to be set via environment variable
-  console.warn('VITE_API_URL not configured. Please set it in Vercel environment variables.');
-  return '/api'; // This will use relative proxy
+  // For local development
+  return 'http://localhost:5000';
 };
 
 const Index = () => {
