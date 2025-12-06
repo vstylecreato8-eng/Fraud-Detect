@@ -32,29 +32,40 @@ def initialize_app():
 
 def load_model(logger):
     try:
+        # Get the script directory
         script_dir = os.path.dirname(os.path.abspath(__file__))
         parent_dir = os.path.dirname(script_dir)
         
-        # Try multiple model file names (prefer smaller models)
-        model_names = ["Credit.pickle", "Creditcard.model", "model.pkl", "model.joblib"]
-        model_path = None
+        logger.info(f"Script dir: {script_dir}")
+        logger.info(f"Parent dir: {parent_dir}")
         
-        for name in model_names:
-            candidate = os.path.join(parent_dir, "model", name)
-            if os.path.exists(candidate):
-                model_path = candidate
-                logger.info(f"Found model file: {name}")
+        # Try multiple model file paths
+        model_paths_to_try = [
+            os.path.join(parent_dir, "model", "Credit.pickle"),
+            os.path.join(parent_dir, "model", "Creditcard.model"),
+            os.path.join(parent_dir, "model", "model.pkl"),
+            os.path.join(parent_dir, "model", "model.joblib"),
+            os.path.join(script_dir, "..", "model", "Credit.pickle"),
+            os.path.join(script_dir, "..", "model", "Creditcard.model"),
+        ]
+        
+        model_path = None
+        for path in model_paths_to_try:
+            logger.info(f"Checking: {path}")
+            if os.path.exists(path):
+                model_path = path
+                logger.info(f"Found model file: {path}")
                 break
         
         if model_path is None:
-            logger.error(f"No model file found. Searched for: {', '.join(model_names)}")
+            logger.error(f"No model file found. Tried: {model_paths_to_try}")
             return None
         
         model = PredictionModel(model_path)
-        logger.info(f"Model initialized (path: {model_path})")
+        logger.info(f"Model initialized successfully (path: {model_path})")
         return model
     except Exception as e:
-        logger.error(f"Failed to load model: {str(e)}")
+        logger.error(f"Failed to load model: {str(e)}", exc_info=True)
         return None
 
 
@@ -88,6 +99,11 @@ def transform_frontend_data(frontend_data):
         'account_age_days': 35,
         'transaction_hour': 12,
     }
+
+
+@app.route('/', methods=['GET'])
+def root():
+    return jsonify({'status': 'Fraud Detection API is running'}), 200
 
 
 @app.route('/api/health', methods=['GET'])
