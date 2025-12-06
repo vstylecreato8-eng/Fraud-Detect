@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,29 @@ const Index = () => {
   const [prediction, setPrediction] = useState<PredictionResult | null>(null);
   const [selectedRow, setSelectedRow] = useState<CSVRow | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+
+  // Check if backend is available
+  useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        const response = await fetch(`${apiUrl}/api/health`, {
+          method: 'GET',
+          mode: 'cors',
+        });
+        if (response.ok) {
+          setBackendStatus('online');
+        } else {
+          setBackendStatus('offline');
+        }
+      } catch (error) {
+        console.warn('Backend health check failed:', error);
+        setBackendStatus('offline');
+      }
+    };
+    
+    checkBackend();
+  }, [apiUrl];
 
   // Parse CSV file
   const parseCSV = (file: File): Promise<CSVRow[]> => {
@@ -200,11 +223,24 @@ const Index = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `API error: ${response.status}`);
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `API error: ${response.status}`);
+        } catch (jsonError) {
+          // If response is not JSON, it's probably HTML error page
+          const errorText = await response.text();
+          console.error('API Error Response:', errorText);
+          throw new Error(`API error: ${response.status} ${response.statusText}. The backend may not be running or configured correctly.`);
+        }
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error('Failed to parse response:', jsonError);
+        throw new Error('Invalid response from API. Backend may not be running or is returning HTML instead of JSON.');
+      }
       
       setPrediction({
         prediction: data.prediction === "FRAUD" ? "FRAUD" : "SAFE",
@@ -249,6 +285,18 @@ const Index = () => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">Fraud Guard</h1>
           <p className="text-muted-foreground">Upload CSV file, select transaction by ID, and get instant fraud detection results</p>
+          
+          {/* Backend Status Warning */}
+          {backendStatus === 'offline' && (
+            <div className="mt-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded">
+              <strong>⚠️ Warning:</strong> Backend API is not available. Make sure your Railway backend is running and VITE_API_URL environment variable is set correctly.
+            </div>
+          )}
+          {backendStatus === 'online' && (
+            <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded">
+              <strong>✓ Backend Connected</strong>
+            </div>
+          )}
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
