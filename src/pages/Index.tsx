@@ -190,27 +190,36 @@ const Index = () => {
 
       // Read response body only once
       const responseText = await response.text();
-      let data;
-
+      
       // Try to parse as JSON
+      let data;
       try {
         data = JSON.parse(responseText);
       } catch (jsonError) {
         console.error('Failed to parse response as JSON:', jsonError, 'Response:', responseText);
-        throw new Error('Invalid response from API. Backend may not be running or is returning HTML instead of JSON.');
+        // Check if we got an HTML error page
+        if (responseText.includes('<') || responseText.includes('html')) {
+          throw new Error('Backend API returned HTML. The backend may not be running or is returning an error page.');
+        }
+        throw new Error('Invalid JSON response from API.');
       }
 
-      // Check for API errors
+      // Check for API errors after successful JSON parsing
       if (!response.ok) {
         throw new Error(data.error || `API error: ${response.status} ${response.statusText}`);
+      }
+      
+      // Validate required fields exist
+      if (!data.prediction || data.confidence === undefined) {
+        throw new Error('Invalid prediction response: missing required fields');
       }
       
       setPrediction({
         prediction: data.prediction === "FRAUD" ? "FRAUD" : "SAFE",
         confidence: data.confidence,  // Keep as decimal (0.75 = 75%)
-        risk_score: data.risk_score,
-        risk_level: data.risk_level,
-        timestamp: data.timestamp,
+        risk_score: data.risk_score || 0,
+        risk_level: data.risk_level || "unknown",
+        timestamp: data.timestamp || new Date().toISOString(),
       });
 
       toast({

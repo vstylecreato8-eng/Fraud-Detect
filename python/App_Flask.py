@@ -106,6 +106,16 @@ def root():
     return jsonify({'status': 'Fraud Detection API is running'}), 200
 
 
+@app.route('/api/debug', methods=['GET'])
+def debug():
+    return jsonify({
+        'status': 'debug',
+        'model_loaded': model is not None,
+        'model_type': str(type(model)) if model else None,
+        'timestamp': datetime.now().isoformat(),
+    }), 200
+
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({
