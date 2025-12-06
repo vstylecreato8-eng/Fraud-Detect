@@ -9,7 +9,6 @@ README.md
 *.ipynb
 model/Fraud_Detect_A.ipynb
 model/fraud_detection_data.csv
-python/
 __pycache__/
 .env.local
 .env.*.local

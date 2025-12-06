@@ -26,10 +26,10 @@ interface AnalysisResult {
   row_data?: CSVRow;
 }
 
-// Get API URL - use Railway backend for predictions
+// Get API URL - use same Vercel instance for API calls
 const getApiUrl = () => {
-  // Your Railway backend domain
-  return 'https://fraud07.up.railway.app';
+  // Use relative URLs for API calls to same Vercel deployment
+  return window.location.origin;
 };
 
 const Index = () => {

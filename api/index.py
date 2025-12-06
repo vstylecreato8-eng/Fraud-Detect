@@ -1,3 +1,5 @@
 from python.App_Flask import app
 
-export = app
+# Vercel serverless function handler
+def handler(request):
+    return app(request)
