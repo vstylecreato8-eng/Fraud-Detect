@@ -50,29 +50,6 @@ const Index = () => {
   const [prediction, setPrediction] = useState<PredictionResult | null>(null);
   const [selectedRow, setSelectedRow] = useState<CSVRow | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking');
-
-  // Check if backend is available
-  useEffect(() => {
-    const checkBackend = async () => {
-      try {
-        const response = await fetch(`${apiUrl}/api/health`, {
-          method: 'GET',
-          mode: 'cors',
-        });
-        if (response.ok) {
-          setBackendStatus('online');
-        } else {
-          setBackendStatus('offline');
-        }
-      } catch (error) {
-        console.warn('Backend health check failed:', error);
-        setBackendStatus('offline');
-      }
-    };
-    
-    checkBackend();
-  }, [apiUrl]);
 
   // Parse CSV file
   const parseCSV = (file: File): Promise<CSVRow[]> => {
@@ -272,17 +249,7 @@ const Index = () => {
           <h1 className="text-4xl font-bold text-foreground mb-2">Fraud Guard</h1>
           <p className="text-muted-foreground">Upload CSV file, select transaction by ID, and get instant fraud detection results</p>
           
-          {/* Backend Status Warning */}
-          {backendStatus === 'offline' && (
-            <div className="mt-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded">
-              <strong>⚠️ Warning:</strong> Backend API is not available. Make sure your Railway backend is running and VITE_API_URL environment variable is set correctly.
-            </div>
-          )}
-          {backendStatus === 'online' && (
-            <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded">
-              <strong>✓ Backend Connected</strong>
-            </div>
-          )}
+          {/* Backend Status - Removed since using Vercel-only deployment */}
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
